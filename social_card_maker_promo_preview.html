@@ -1,0 +1,552 @@
+<html>
+<head>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: linear-gradient(135deg, #0f0f1e 0%, #1a0a2e 100%);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  color: var(--text-primary, #fff);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+  background: rgba(20, 20, 40, 0.8);
+  border: 0.5px solid rgba(100, 150, 255, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: radial-gradient(circle at 30% 50%, rgba(0, 150, 200, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 70% 70%, rgba(150, 0, 200, 0.1) 0%, transparent 50%),
+              linear-gradient(180deg, #0f0f1e 0%, #1a0a2e 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stage {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.presenter {
+  position: absolute;
+  left: 10%;
+  width: 35%;
+  height: 80%;
+  background: linear-gradient(135deg, rgba(100, 150, 255, 0.1), rgba(200, 100, 255, 0.1));
+  border: 1px solid rgba(150, 150, 255, 0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: rgba(150, 150, 255, 0.4);
+  box-shadow: 0 0 40px rgba(100, 150, 255, 0.15);
+}
+
+.presenter::before {
+  content: '🎤';
+  font-size: 64px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.dialog-box {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid rgba(100, 200, 255, 0.5);
+  border-radius: 8px;
+  padding: 16px 24px;
+  max-width: 85%;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dialog-box.active { opacity: 1; }
+
+.glitch-effect {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes glitch {
+  0% { opacity: 0; }
+  50% { opacity: 1; transform: skewX(-5deg); }
+  100% { opacity: 0; }
+}
+
+.boring-text {
+  position: absolute;
+  right: 15%;
+  width: 40%;
+  height: 60%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+}
+
+.text-item {
+  padding: 12px 16px;
+  background: rgba(100, 100, 100, 0.3);
+  border: 1px solid rgba(150, 150, 150, 0.3);
+  border-radius: 6px;
+  font-size: 13px;
+  color: rgba(200, 200, 200, 0.6);
+  opacity: 0;
+  animation: float-in 0.4s ease forwards;
+}
+
+@keyframes float-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shatter {
+  0% { opacity: 1; transform: scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: scale(0.3) rotate(45deg) translateY(-20px); }
+}
+
+.section-label {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 12px;
+  color: rgba(150, 150, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.section-label.active { opacity: 1; }
+
+.phone-3d {
+  position: absolute;
+  right: 12%;
+  width: 180px;
+  height: 280px;
+  background: linear-gradient(135deg, #222, #111);
+  border: 8px solid #333;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(100, 150, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: rgba(100, 150, 255, 0.5);
+  opacity: 0;
+  animation: phone-appear 0.6s ease forwards;
+  transform-style: preserve-3d;
+}
+
+@keyframes phone-appear {
+  from { opacity: 0; transform: translateX(100px) rotateY(-40deg); }
+  to { opacity: 1; transform: translateX(0) rotateY(0); }
+}
+
+.phone-screen {
+  width: 90%;
+  height: 90%;
+  background: linear-gradient(135deg, rgba(100, 150, 255, 0.1), rgba(200, 100, 255, 0.1));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: rgba(150, 150, 255, 0.6);
+}
+
+.feature-showcase {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+}
+
+.feature-text {
+  font-size: 28px;
+  font-weight: 500;
+  color: rgba(150, 150, 255, 0.8);
+  opacity: 0;
+  animation: feature-pop 0.5s ease forwards;
+}
+
+@keyframes feature-pop {
+  from { opacity: 0; transform: scale(0.8) rotateX(-20deg); }
+  to { opacity: 1; transform: scale(1) rotateX(0); }
+}
+
+.color-ring {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid;
+  opacity: 0;
+  animation: ring-spin 2s linear infinite;
+}
+
+@keyframes ring-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background: rgba(100, 100, 100, 0.3);
+  position: relative;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #0096ff, #ff006e);
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+.controls {
+  padding: 16px 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 20, 0.6);
+  border-top: 0.5px solid rgba(100, 150, 255, 0.2);
+}
+
+button {
+  padding: 8px 16px;
+  background: rgba(100, 150, 255, 0.2);
+  border: 1px solid rgba(100, 150, 255, 0.4);
+  border-radius: 6px;
+  color: rgba(150, 150, 255, 0.8);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: rgba(100, 150, 255, 0.4);
+  border-color: rgba(150, 150, 255, 0.6);
+}
+
+.time-display {
+  font-size: 12px;
+  color: rgba(150, 150, 255, 0.6);
+  min-width: 40px;
+  text-align: right;
+}
+
+.whatsapp-button {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #25d366;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  animation: bounce 2s ease infinite;
+  opacity: 0;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <div class="viewport" id="viewport">
+    <div class="stage">
+      <div class="presenter"></div>
+      
+      <div class="section-label" id="sectionLabel">HOOK</div>
+      
+      <div class="boring-text" id="boringText">
+        <div class="text-item">সাধারণ স্ট্যাটাস</div>
+        <div class="text-item">বোরিং লেখা</div>
+        <div class="text-item">কোনো ডিজাইন নেই</div>
+      </div>
+
+      <div class="glitch-effect" id="glitchEffect"></div>
+
+      <div class="phone-3d" id="phone3d">
+        <div class="phone-screen">
+          📱 PWA
+        </div>
+      </div>
+
+      <div class="feature-showcase" id="featureShowcase">
+        <div class="feature-text" id="featureText1">২০+ প্রিমিয়াম ফন্ট</div>
+        <div class="color-ring" id="colorRing" style="border-color: #ff0066;"></div>
+        <div class="feature-text" id="featureText2">ম্যাজিক কালার পিকার</div>
+      </div>
+
+      <div class="whatsapp-button" id="whatsappBtn">💬</div>
+
+      <div class="dialog-box" id="dialogBox"></div>
+    </div>
+  </div>
+
+  <div class="progress-bar-container">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="controls">
+    <button id="playBtn">▶ চালু করুন</button>
+    <button id="pauseBtn">⏸ থামান</button>
+    <button id="resetBtn">↻ পুনরায় শুরু করুন</button>
+    <div class="time-display"><span id="timeDisplay">0:00</span> / 1:00</div>
+  </div>
+</body>
+
+<script>
+const viewport = document.getElementById('viewport');
+const dialogBox = document.getElementById('dialogBox');
+const sectionLabel = document.getElementById('sectionLabel');
+const boringText = document.getElementById('boringText');
+const glitchEffect = document.getElementById('glitchEffect');
+const phone3d = document.getElementById('phone3d');
+const featureShowcase = document.getElementById('featureShowcase');
+const whatsappBtn = document.getElementById('whatsappBtn');
+const progressBar = document.getElementById('progressBar');
+const timeDisplay = document.getElementById('timeDisplay');
+const playBtn = document.getElementById('playBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+let currentTime = 0;
+let isPlaying = false;
+let animationFrameId;
+
+const TOTAL_DURATION = 60000;
+
+const scenes = [
+  {
+    time: 0,
+    duration: 5000,
+    label: '💥 HOOK',
+    setup: () => {
+      viewport.style.background = 'radial-gradient(circle at 30% 50%, rgba(0, 150, 200, 0.1) 0%, transparent 50%), radial-gradient(circle at 70% 70%, rgba(150, 0, 200, 0.1) 0%, transparent 50%), linear-gradient(180deg, #0f0f1e 0%, #1a0a2e 100%)';
+      boringText.style.opacity = '1';
+      dialogBox.classList.add('active');
+      dialogBox.textContent = '📌 সোশ্যাল মিডিয়ায় বোরিং টেক্সট স্ট্যাটাস দিয়ে রিচ পাচ্ছেন না?';
+    },
+    update: (progress) => {
+      if (progress > 0.7) {
+        glitchEffect.style.opacity = '1';
+        glitchEffect.style.animation = `glitch 0.3s ease infinite`;
+        boringText.querySelectorAll('.text-item').forEach(item => {
+          item.style.animation = `shatter 0.4s ease forwards`;
+        });
+      }
+    },
+    teardown: () => {
+      boringText.style.opacity = '0';
+      glitchEffect.style.opacity = '0';
+      dialogBox.classList.remove('active');
+    }
+  },
+
+  {
+    time: 5000,
+    duration: 10000,
+    label: '📱 অ্যাপ পরিচিতি',
+    setup: () => {
+      phone3d.style.opacity = '1';
+      phone3d.style.animation = 'phone-appear 0.6s ease forwards';
+      dialogBox.classList.add('active');
+      dialogBox.textContent = '✨ এবার আপনার সাধারণ লেখাকে দিন প্রফেশনাল লুক! সোশ্যাল কার্ড মেকার - কোনো অ্যাপ ইনস্টলের ঝামেলা ছাড়াই!';
+    },
+    update: (progress) => {
+      phone3d.style.transform = `rotateY(${progress * 20}deg) rotateX(${progress * 10}deg)`;
+    },
+    teardown: () => {
+      phone3d.style.opacity = '0';
+      dialogBox.classList.remove('active');
+    }
+  },
+
+  {
+    time: 15000,
+    duration: 15000,
+    label: '✨ ফিচার শোকেস',
+    setup: () => {
+      featureShowcase.style.opacity = '1';
+      document.getElementById('featureText1').style.opacity = '1';
+      document.getElementById('colorRing').style.opacity = '0.7';
+      dialogBox.classList.add('active');
+      dialogBox.textContent = '🎨 সাইনবোর্ড ও পোস্টার ডিজাইনের জন্য ২০+ প্রিমিয়াম বাংলা ও ইংরেজি ফন্ট। ম্যাজিক কালার পিকারে পেয়ে যান অসাধারণ ব্যাকগ্রাউন্ড!';
+    },
+    update: (progress) => {
+      viewport.style.background = `linear-gradient(${progress * 360}deg, 
+        rgba(${Math.floor(100 + progress * 155)}, 50, 200, 0.1) 0%, 
+        rgba(100, ${Math.floor(150 - progress * 150)}, 255, 0.1) 100%),
+        linear-gradient(180deg, #0f0f1e 0%, #1a0a2e 100%)`;
+      document.getElementById('colorRing').style.borderColor = `hsl(${progress * 360}, 100%, 50%)`;
+    },
+    teardown: () => {
+      featureShowcase.style.opacity = '0';
+      dialogBox.classList.remove('active');
+    }
+  },
+
+  {
+    time: 30000,
+    duration: 10000,
+    label: '📐 রেশিও ও শেয়ারিং',
+    setup: () => {
+      dialogBox.classList.add('active');
+      dialogBox.textContent = '📤 ফেসবুক, টিকটক বা ইনস্টাগ্রাম? রেশিও সিলেক্ট করুন, সরাসরি হাই-রেজোলিউশনে ডাউনলোড করুন!';
+    },
+    update: (progress) => {},
+    teardown: () => {
+      dialogBox.classList.remove('active');
+    }
+  },
+
+  {
+    time: 40000,
+    duration: 10000,
+    label: '🔌 PWA সুবিধা',
+    setup: () => {
+      phone3d.style.opacity = '1';
+      dialogBox.classList.add('active');
+      dialogBox.textContent = '⚡ এটি একটি PWA অ্যাপ! প্লে-স্টোরে না গিয়েই সরাসরি হোমস্ক্রিনে অ্যাড করুন। অফলাইনেও কাজ করে!';
+    },
+    update: (progress) => {
+      phone3d.style.transform = `translateY(${Math.sin(progress * Math.PI * 2) * 10}px)`;
+    },
+    teardown: () => {
+      phone3d.style.opacity = '0';
+      dialogBox.classList.remove('active');
+    }
+  },
+
+  {
+    time: 50000,
+    duration: 10000,
+    label: '🎬 আউট্রো',
+    setup: () => {
+      whatsappBtn.style.opacity = '1';
+      whatsappBtn.style.animation = 'bounce 2s ease infinite';
+      dialogBox.classList.add('active');
+      dialogBox.innerHTML = '👨‍💻 ডিজাইন ও ডেভেলপমেন্ট: <strong>মোঃ মঙ্গেরুল হক</strong><br>🚀 <strong>লার্নিং টু আর্নিং বাংলাদেশ</strong>';
+    },
+    update: (progress) => {},
+    teardown: () => {
+      whatsappBtn.style.opacity = '0';
+      dialogBox.classList.remove('active');
+    }
+  }
+];
+
+function updateTime(time) {
+  currentTime = Math.max(0, Math.min(time, TOTAL_DURATION));
+  progressBar.style.width = (currentTime / TOTAL_DURATION) * 100 + '%';
+  const sec = Math.floor(currentTime / 1000);
+  const min = Math.floor(sec / 60);
+  timeDisplay.textContent = `${min}:${(sec % 60).toString().padStart(2, '0')}`;
+
+  scenes.forEach(scene => {
+    if (currentTime >= scene.time && currentTime < scene.time + scene.duration) {
+      if (!scene.active) {
+        scene.setup();
+        scene.active = true;
+      }
+      const progress = (currentTime - scene.time) / scene.duration;
+      scene.update(progress);
+      sectionLabel.textContent = scene.label;
+      sectionLabel.classList.add('active');
+    } else {
+      if (scene.active) {
+        scene.teardown();
+        scene.active = false;
+      }
+    }
+  });
+}
+
+function animate(timestamp) {
+  if (isPlaying) {
+    currentTime += 16.67;
+    updateTime(currentTime);
+    if (currentTime >= TOTAL_DURATION) {
+      isPlaying = false;
+      playBtn.textContent = '▶ চালু করুন';
+    }
+  }
+  animationFrameId = requestAnimationFrame(animate);
+}
+
+playBtn.addEventListener('click', () => {
+  isPlaying = true;
+  playBtn.textContent = '▶ চলছে...';
+});
+
+pauseBtn.addEventListener('click', () => {
+  isPlaying = false;
+  playBtn.textContent = '▶ চালু করুন';
+});
+
+resetBtn.addEventListener('click', () => {
+  isPlaying = false;
+  currentTime = 0;
+  updateTime(0);
+  playBtn.textContent = '▶ চালু করুন';
+  scenes.forEach(scene => {
+    scene.active = false;
+  });
+});
+
+updateTime(0);
+animationFrameId = requestAnimationFrame(animate);
+</script>
+</html>
